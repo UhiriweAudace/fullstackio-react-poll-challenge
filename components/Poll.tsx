@@ -6,7 +6,6 @@ type Props = {
   qandas: QandAsDocument /* q and a's -- questions and answers document */;
 };
 
-
 export default function Poll({ qandas }: Props) {
   const [index, setIndex] = React.useState<number>(0);
   const [clickedAnswerIndex, setClickedAnswerIndex] =
@@ -31,34 +30,30 @@ export default function Poll({ qandas }: Props) {
     setVotesTotals(totals);
   };
 
+  const calculateNewVotesTotals = (questions:Props,answer_index:number,question_index:number) => {
+    let votes = [...votesTotals];
+    votes[question_index] += 1;
+    questions.qandas.questions[question_index].answers[answer_index]['votes'] += 1;
+    setVotesTotals(votes);
+    setQuestions({ ...questions });
+    setClickedAnswerIndex(answer_index);
+    setClickedQuestionIndex(question_index);
+  };
+
+  const {qandas:Qandas} = questions;
   return (
     <PollWrapper>
-      {questions.qandas.questions.length
-        ? questions.qandas.questions.map(
-            ({ question, answers }, question_index, questionArray) => {
-              return (
-                index === question_index && (
+      {Qandas.questions.map(
+            ({ question, answers }, question_index, qandasArray) => index === question_index && (
                   <SinglePoll key={question_index}>
                     <QuestionText>{question.text}</QuestionText>
                     <AnswerList>
                       {answers.map(({ text, votes }, answer_index) => {
-                        const perc_votes = Math.ceil(
-                          (votes / votesTotals[question_index]) * 100
-                        );
-                        const calculateNewTotals = () => {
-                          let votes = [...votesTotals];
-                          votes[question_index] += 1;
-                          setVotesTotals(votes);
-                          questions.qandas.questions[question_index].answers[
-                            answer_index
-                          ]['votes'] += 1;
-                          setQuestions({ ...questions });
-                          setClickedAnswerIndex(answer_index);
-                          setClickedQuestionIndex(question_index);
-                        };
-
+                        const perc_votes = Math.ceil((votes / votesTotals[question_index]) * 100);
                         return (
-                          <Row key={answer_index} onClick={calculateNewTotals}>
+                          <Row key={answer_index} 
+                            onClick={()=>calculateNewVotesTotals(questions,answer_index,question_index)}
+                          >
                             <ProgressBar percentage={perc_votes} />
                             <TextWrapper>
                               <Text percentage={perc_votes}>{text}</Text>
@@ -82,7 +77,7 @@ export default function Poll({ qandas }: Props) {
                           Previous
                         </Button>
                       ) : null}
-                      {index !== questionArray.length - 1 ? (
+                      {index !== qandasArray.length - 1 ? (
                         <Button onClick={() => setIndex((prev) => (prev += 1))}>
                           Next
                         </Button>
@@ -90,10 +85,8 @@ export default function Poll({ qandas }: Props) {
                     </ButtonGroup>
                   </SinglePoll>
                 )
-              );
-            }
           )
-        : null}
+      }
     </PollWrapper>
   );
 }

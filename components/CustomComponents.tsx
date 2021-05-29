@@ -8,13 +8,15 @@ export const PollWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 4px #ccc;
+  box-shadow: 2px 5px 10px 3px #ccc;
+  padding: 2rem;
+  border-radius:5px;
 `;
 
 export const SinglePoll = styled.div`
   display: flex;
   flex-direction: column;
-  width: 80%;
+  width: 100%;
   cursor: pointer;
 `;
 
@@ -32,10 +34,11 @@ export const Row = styled.div`
   justify-content: space-between;
   align-items: center;
   border: 1px solid #ccc;
-  padding: 0.5rem;
-  margin: 1rem 0;
+  padding: 0.2rem;
+  margin: .7rem 0;
   position: relative;
   height: 35px;
+  border-radius:5px;
 `;
 
 export const TextWrapper = styled.div`
@@ -45,6 +48,7 @@ export const TextWrapper = styled.div`
   position: absolute;
   z-index: 20;
   width: 95%;
+  padding: 0 .5rem;
 `;
 
 export const ProgressBar = styled.div<ProgressBarType>`
@@ -54,11 +58,16 @@ export const ProgressBar = styled.div<ProgressBarType>`
   top: 0;
   left: 0;
   right: 0;
-  width: ${(props: ProgressBarType) => props.percentage}%;
+  width: ${(props: ProgressBarType) => props.percentage<=100?props.percentage:100}%;
   min-height: 35px !important;
-  padding: 0.5rem;
+  padding: 0.2rem;
   z-index: 10;
   transition: width 1s ease-in-out;
+  border-top-left-radius:${(props: ProgressBarType) => props.percentage >= 100 ? '0px' : '5px'};
+  border-bottom-left-radius:${(props: ProgressBarType) => props.percentage >= 100 ? '0px' : '5px'};
+  border-top-right-radius:${(props: ProgressBarType) => props.percentage !== 100 ? '0px' : '5px'};
+  border-bottom-right-radius:${(props: ProgressBarType) => props.percentage !== 100 ? '0px' : '5px'};
+
 `;
 
 export const Text = styled.span<ProgressBarType>`
@@ -68,6 +77,7 @@ export const Text = styled.span<ProgressBarType>`
 
 export const CountVotes = styled.div`
   color: #ccc;
+  margin-bottom:1rem;
 `;
 
 export const ButtonGroup = styled.div`
@@ -78,7 +88,6 @@ export const ButtonGroup = styled.div`
 `;
 
 export const Button = styled.div`
-  margin: 1rem 0;
   border: 1px solid #030c30;
   width: max-content;
   padding: 0.5rem 1.5rem;
