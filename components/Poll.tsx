@@ -31,6 +31,18 @@ export default function Poll({ qandas }: Props) {
     setVotesTotals(totals);
   };
 
+  const calculateNewVotesTotals = (questions:Props,answer_index:number,question_index:number) => {
+    let votes = [...votesTotals];
+    votes[question_index] += 1;
+    setVotesTotals(votes);
+    questions.qandas.questions[question_index].answers[
+      answer_index
+    ]['votes'] += 1;
+    setQuestions({ ...questions });
+    setClickedAnswerIndex(answer_index);
+    setClickedQuestionIndex(question_index);
+  };
+
   return (
     <PollWrapper>
       {questions.qandas.questions.length
@@ -42,23 +54,9 @@ export default function Poll({ qandas }: Props) {
                     <QuestionText>{question.text}</QuestionText>
                     <AnswerList>
                       {answers.map(({ text, votes }, answer_index) => {
-                        const perc_votes = Math.ceil(
-                          (votes / votesTotals[question_index]) * 100
-                        );
-                        const calculateNewTotals = () => {
-                          let votes = [...votesTotals];
-                          votes[question_index] += 1;
-                          setVotesTotals(votes);
-                          questions.qandas.questions[question_index].answers[
-                            answer_index
-                          ]['votes'] += 1;
-                          setQuestions({ ...questions });
-                          setClickedAnswerIndex(answer_index);
-                          setClickedQuestionIndex(question_index);
-                        };
-
+                        const perc_votes = Math.ceil((votes / votesTotals[question_index]) * 100);
                         return (
-                          <Row key={answer_index} onClick={calculateNewTotals}>
+                          <Row key={answer_index} onClick={()=>calculateNewVotesTotals(questions,answer_index,question_index)}>
                             <ProgressBar percentage={perc_votes} />
                             <TextWrapper>
                               <Text percentage={perc_votes}>{text}</Text>
