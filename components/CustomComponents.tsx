@@ -1,9 +1,12 @@
 import styled from 'styled-components';
 
-type ProgressBarType = {
-  percentage?: number;
+type TextPropsType = {
   mostPopularAnswer: number;
   votes: number;
+}
+
+type ProgressBarPropsType = TextPropsType & {
+  percentage: number;
 };
 
 export const PollWrapper = styled.div`
@@ -54,22 +57,22 @@ export const TextWrapper = styled.div`
   padding: 0 0.5rem;
 `;
 
-export const ProgressBar = styled.div<ProgressBarType>`
-  background-color: ${({ mostPopularAnswer, votes }: ProgressBarType) =>
+export const ProgressBar = styled.div<ProgressBarPropsType>`
+  background-color: ${({ mostPopularAnswer, votes }: ProgressBarPropsType) =>
     mostPopularAnswer === votes ? '#06f9f9' : '#8080804f'};
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  width: ${({ percentage }: ProgressBarType) => percentage || 100}%;
+  width: ${({ percentage }: ProgressBarPropsType) => percentage || 100}%;
   min-height: 35px !important;
   padding: 0.2rem;
   z-index: 10;
   transition: width 1s ease-in-out;
 `;
 
-export const Text = styled.span<ProgressBarType>`
-  font-weight: ${({ mostPopularAnswer, votes }: ProgressBarType) =>
+export const Text = styled.span<TextPropsType>`
+  font-weight: ${({ mostPopularAnswer, votes }: TextPropsType) =>
     mostPopularAnswer === votes ? 'bold' : 'normal'};
 `;
 
