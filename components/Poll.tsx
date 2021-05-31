@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { QandAsDocument } from '../types';
-import { AnswerList, PollWrapper, ProgressBar, QuestionText, Row, SinglePoll, TextWrapper,Text,CountVotes,ButtonGroup,Button } from './CustomComponents';
+import {
+  PollWrapper,
+  QuestionText,
+  SinglePoll,
+  CountVotes,
+  ButtonGroup,
+  Button,
+} from './CustomComponents';
+import PollAnswerList from './PollAnswerList';
 
 type Props = {
   qandas: QandAsDocument /* q and a's -- questions and answers document */;
@@ -12,15 +20,23 @@ export default function Poll({ qandas }: Props) {
     React.useState<number>(-1);
   const [clickedQuestionIndex, setClickedQuestionIndex] =
     React.useState<number>(0);
-
   const [questions, setQuestions] = React.useState<Props>({ qandas });
   const [votesTotals, setVotesTotals] = React.useState<number[]>([]);
+  const [mostPopularAnswer, setMostPopularAnswer] = React.useState<number>(-1);
 
   React.useEffect(() => {
-    calculateTotals();
+    calculateVotesTotals();
   }, []);
 
-  const calculateTotals = () => {
+  const calcuteMostPopularAnswerVotes = (questionIndex: number) => {
+    const popularVotes =
+      questions.qandas.questions[questionIndex].answers
+        .map((ans) => ans.votes)
+        .sort((a, b) => a - b)
+        .pop() || -1;
+    setMostPopularAnswer(popularVotes);
+  };
+  const calculateVotesTotals = () => {
     const totals: number[] = [];
     questions.qandas.questions.map(({ answers }) => {
       let sum = 0;
@@ -28,65 +44,65 @@ export default function Poll({ qandas }: Props) {
       totals.push(sum);
     });
     setVotesTotals(totals);
+    calcuteMostPopularAnswerVotes(index);
   };
 
-  const calculateNewVotesTotals = (questions:Props,answer_index:number,question_index:number) => {
+  const calculateUpdatedVotes = (
+    answerIndex: number,
+    questionIndex: number
+  ) => {
     let votes = [...votesTotals];
-    votes[question_index] += 1;
-    questions.qandas.questions[question_index].answers[answer_index]['votes'] += 1;
+    votes[questionIndex] += 1;
+    questions.qandas.questions[questionIndex].answers[answerIndex][
+      'votes'
+    ] += 1;
     setVotesTotals(votes);
     setQuestions({ ...questions });
-    setClickedAnswerIndex(answer_index);
-    setClickedQuestionIndex(question_index);
+    setClickedAnswerIndex(answerIndex);
+    setClickedQuestionIndex(questionIndex);
+    calcuteMostPopularAnswerVotes(index);
   };
 
-  const {qandas:Qandas} = questions;
+  const nextPreviousHandler = (action: string) => {
+    const questionIndex = action === 'next' ? index + 1 : index - 1;
+    setIndex(questionIndex);
+    calcuteMostPopularAnswerVotes(questionIndex);
+  };
+
+  const { qandas: Qandas } = questions;
   return (
     <PollWrapper>
       {Qandas.questions.map(
-            ({ question, answers }, question_index, qandasArray) => index === question_index && (
-                  <SinglePoll key={question_index}>
-                    <QuestionText>{question.text}</QuestionText>
-                    <AnswerList>
-                      {answers.map(({ text, votes }, answer_index) => {
-                        const perc_votes = Math.ceil((votes / votesTotals[question_index]) * 100);
-                        return (
-                          <Row key={answer_index} 
-                            onClick={()=>calculateNewVotesTotals(questions,answer_index,question_index)}
-                          >
-                            <ProgressBar percentage={perc_votes} />
-                            <TextWrapper>
-                              <Text percentage={perc_votes}>{text}</Text>
-                              {clickedAnswerIndex === answer_index &&
-                              question_index === clickedQuestionIndex ? (
-                                <img
-                                  src={require('../static/check-circle.svg')}
-                                  width={20}
-                                />
-                              ) : null}
-                              <Text percentage={perc_votes}>{perc_votes}%</Text>
-                            </TextWrapper>
-                          </Row>
-                        );
-                      })}
-                    </AnswerList>
-                    <CountVotes>{votesTotals[question_index]} votes</CountVotes>
-                    <ButtonGroup>
-                      {question_index !== 0 ? (
-                        <Button onClick={() => setIndex((prev) => (prev -= 1))}>
-                          Previous
-                        </Button>
-                      ) : null}
-                      {index !== qandasArray.length - 1 ? (
-                        <Button onClick={() => setIndex((prev) => (prev += 1))}>
-                          Next
-                        </Button>
-                      ) : null}
-                    </ButtonGroup>
-                  </SinglePoll>
-                )
+        ({ question, answers }, questionIndex, qandasArray) =>
+          index === questionIndex && (
+            <SinglePoll key={questionIndex}>
+              <QuestionText>{question.text}</QuestionText>
+              <PollAnswerList
+                answers={answers}
+                questions={questions}
+                votesTotals={votesTotals}
+                questionIndex={questionIndex}
+                clickedAnswerIndex={clickedAnswerIndex}
+                clickedQuestionIndex={clickedQuestionIndex}
+                calculateUpdatedVotes={calculateUpdatedVotes}
+                mostPopularAnswer={mostPopularAnswer}
+              />
+              <CountVotes>{votesTotals[questionIndex]} votes</CountVotes>
+              <ButtonGroup>
+                {questionIndex !== 0 && (
+                  <Button onClick={() => nextPreviousHandler('previous')}>
+                    Previous
+                  </Button>
+                )}
+                {index !== qandasArray.length - 1 && (
+                  <Button onClick={() => nextPreviousHandler('next')}>
+                    Next
+                  </Button>
+                )}
+              </ButtonGroup>
+            </SinglePoll>
           )
-      }
+      )}
     </PollWrapper>
   );
 }
